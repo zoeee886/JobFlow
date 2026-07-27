@@ -2,6 +2,12 @@ const STORAGE_KEY = "jobflow_state_v2";
 const LEGACY_STORAGE_KEY = "jobflow_state_v1";
 const DATA_RESET_MARKER_KEY = "jobflow_data_reset_20260723";
 const JOB_STATUSES = ["待投递", "已投递", "面试中", "已Offer", "未通过"];
+const DEMO_JOB = {
+  roleType: "产品经理",
+  title: "产品经理实习生",
+  company: "星河科技",
+  jd: `岗位职责：参与用户需求调研、产品方案设计与版本迭代，协同设计、研发和运营团队推进项目落地；跟踪核心数据并输出优化建议。\n\n任职要求：本科及以上在读，对互联网产品和用户体验有兴趣；具备结构化思考、沟通协作与基础数据分析能力；有校园项目、产品作品或用户研究经历者优先。`
+};
 
 const state = loadState();
 let currentView = "jobs";
@@ -406,7 +412,20 @@ function renderJobFlow(job, hasJdReview) {
 }
 
 function renderEmptyJobs() {
-  return `<div class="empty"><div>${icon("briefcase-business", 28)}<h2>还没有岗位</h2><button class="btn primary" id="emptyNewJobBtn">创建第一个岗位</button></div></div>`;
+  return `<section class="empty demo-guide" aria-labelledby="demoGuideTitle"><div>
+    <span class="module-product-name">首次体验</span>
+    ${icon("briefcase-business", 28)}
+    <h2 id="demoGuideTitle">从一个岗位 JD 开始</h2>
+    <p>JobFlow 会把零散的求职准备串成一条可执行的流程。</p>
+    <ol class="demo-flow" aria-label="JobFlow 核心流程">
+      <li><span>1</span><strong>输入 JD</strong></li>
+      <li><span>2</span><strong>AI 分析</strong></li>
+      <li><span>3</span><strong>简历优化</strong></li>
+      <li><span>4</span><strong>投递管理</strong></li>
+    </ol>
+    <div class="demo-actions"><button class="btn primary" id="demoJdBtn">${icon("sparkles", 16)}使用示例 JD，开始体验</button><button class="btn ghost" id="emptyNewJobBtn">创建第一个岗位</button></div>
+    <small>示例会创建一条本地岗位记录，并进入原有的岗位分析流程。</small>
+  </div></section>`;
 }
 
 function bindJobsEvents() {
@@ -414,6 +433,7 @@ function bindJobsEvents() {
   const openModal = type => { presetJobType = type || ""; modal.hidden = false; const select = $("#jobType"); if (select && type) select.value = type; $("#jobTitle")?.focus(); };
   const closeModal = () => { modal.hidden = true; };
   $("#emptyNewJobBtn")?.addEventListener("click", () => openModal(""));
+  $("#demoJdBtn")?.addEventListener("click", startDemoExperience);
   $("#closeJobModal")?.addEventListener("click", closeModal);
   $("#cancelJobBtn")?.addEventListener("click", closeModal);
   modal?.addEventListener("click", event => { if (event.target === modal) closeModal(); });
@@ -451,6 +471,27 @@ function createJob() {
   currentJobId = job.id;
   currentView = "workspace";
   currentTab = "overview";
+  saveState();
+  render();
+}
+
+function startDemoExperience() {
+  const now = new Date().toISOString();
+  const job = {
+    id: crypto.randomUUID(),
+    ...DEMO_JOB,
+    status: JOB_STATUSES[0],
+    createdAt: now,
+    updatedAt: now,
+    statusUpdatedAt: now
+  };
+  if (!state.jobTypes.includes(job.roleType)) state.jobTypes.push(job.roleType);
+  expandedJobTypes.add(job.roleType);
+  state.jobs.unshift(job);
+  state.statusHistory[job.id] = [{ status: job.status, toStatus: job.status, changedAt: now }];
+  currentJobId = job.id;
+  currentView = "workspace";
+  currentTab = "jd";
   saveState();
   render();
 }
