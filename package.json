@@ -1,0 +1,19 @@
+{
+  "name": "jobflow-web-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "setup:deepseek": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-deepseek.ps1",
+    "test:deepseek": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-deepseek.ps1"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "lucide": "^1.26.0",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.1.200"
+  }
+}
